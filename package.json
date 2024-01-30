@@ -1,0 +1,17 @@
+{
+  "name": "cant-stop-the-music",
+  "version": "1.0.0",
+  "description": "A script to convert spotify playlists to mp3s",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.7",
+    "colors": "^1.4.0",
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2"
+  }
+}

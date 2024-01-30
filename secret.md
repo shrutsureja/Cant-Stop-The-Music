@@ -1,0 +1,11 @@
+
+temp email -> hapep69290@bitofee.com -> a123456789
+
+clientID = 05b62b5583b44d7b8e8d9f9142381cac
+clientSECRET = 7f431cedb4954e03819e4bcf139f2e3a
+
+scope = playlist-read-private
+
+redirect uri = http://localhost:3000/callback
+
+code=AQA4Sj6o1SRQr2ToN8SM4UhHsLuqcDCLRz_NpV6EBqjd01rpDRKHFQ444AjVUvwbPXqPpf8BK0GxlzqJBr3Vb4Bk5i_JFXQzWO355HY-UNNV1FxdiRVJbkMnGVr86jUuxDm3PqcS03Q7kq1Ze0RSF_83hzWL826KIRDn-DMqXMH2rRT2nhYMJNNXo2oQZyxX6gShTeGzzJN5Es4nPhg701_bVIy1ZTujtQRCCMot6mUlP7BZbA
