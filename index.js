@@ -1,7 +1,9 @@
-const axios = require('axios');
-const express = require('express');
-const color = require('colors');
-require('dotenv').config();
+import axios from 'axios';
+import express from 'express';
+import color from 'colors';
+import open from 'open';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const PORT = 3000;
 const client_id = process.env.CLIENT_ID;
@@ -23,10 +25,10 @@ async function getAccessToken(code){
   return data.access_token;
 }
 
-async function getPlaylists(token){
+async function getPlaylists(accessToken){
   const {data} = await axios.get('https://api.spotify.com/v1/me/playlists', {
     headers : {
-      'Authorization' : `Bearer ${token}`
+      'Authorization' : `Bearer ${accessToken}`
     }
   });
   // only taking the data that is necessary for us 
@@ -37,48 +39,54 @@ async function getPlaylists(token){
     name,
     tracks
   }));
-
   return {
     playlists: destructuredPlaylists,
     total : data.total
   };
 }
 
-// link wise send the request to get the playlist
-async function getAllTracks(playlists, accessToken){
-  return playlists.playlists.map(async (list) => {
-    const tracks = await getTracks(list.tracks, accessToken)
+async function getTracksFromAllPlaylist(playlistPayload, accessToken){
+  const tracksFromAllPlaylist = await Promise.all(playlistPayload.playlists.map(async (list) => {
+    const tracksFromSinglePlaylist = await getTracksFromSinglePlaylist(list.tracks, accessToken);
     return {
-      href: list.href,
-      id: list.id,
-      playlistName : list.name,
-      tracks : tracks
-    }
-  });
+      ...list,
+      trackDetails : tracksFromSinglePlaylist,
+      trackLength : tracksFromSinglePlaylist.length
+    };
+  }));
+  return tracksFromAllPlaylist;
 }
 
-async function getTracks(trackDetails, accessToken) {
+async function getTracksFromSinglePlaylist(list, accessToken) {
   const allTracks = [];
   let offset = 0;
-  while(true){
-    const response = await axios.get(trackDetails.href + `?limit=50&offset=${offset}`, {
-      headers : accessToken
+  while (true) {
+    const {data} = await axios.get(list.href, {
+      headers : {
+        Authorization : `Bearer ${accessToken}`
+      },
+      params : {
+        limit : 20,
+        offset: offset
+      }
     });
-    //destructure the response later overhere
-
-    const tracks = data.items;
+    const tracks = data.items.map(({ track }) => ({
+      album: track.album.name,
+      artist: track.artists[0].name,
+      name: track.name,
+      url: track.external_urls.spotify,
+    }));  
     allTracks.push(...tracks);
-    if(tracks.length < 50)break;
-    offset = offset + 50;
+    if(tracks.length < 20) break;
+    offset += 20;
   }
   return allTracks;
 }
 
-
 async function main() {
   console.log('Click here to give the code access to fetch your details from spotify:');
   console.log(`https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=code&redirect_uri=${redirect_uri}&scope=user-read-private%20user-read-email%20playlist-read-private&state=34fFs29kd09`);
-
+  open(`https://accounts.spotify.com/authorize?client_id=${client_id}&response_type=code&redirect_uri=${redirect_uri}&scope=user-read-private%20user-read-email%20playlist-read-private&state=34fFs29kd09`, {app : { name : 'firefox'}});
   // creating a temp server 
   const app = express();
   app.get('/callback', async (req,res)=>{
@@ -86,18 +94,7 @@ async function main() {
     try{
       const accessToken = await getAccessToken(code);
       const playlists = await getPlaylists(accessToken);
-      console.log(color.blue(`User playlists extracted`));
-      const playlistWiseTracks = await getAllTracks(playlists, accessToken);
-      // const refObj = {
-      //     href: "https://api.spotify.com/v1/playlists/20gm536nbISgua7IW0mXjb",
-      //     id: "20gm536nbISgua7IW0mXjb",
-      //     name: "whatever",
-      //     tracks: {
-      //         href: "https://api.spotify.com/v1/playlists/20gm536nbISgua7IW0mXjb/tracks",
-      //         total: 30
-      //     }
-      // }
-
+      const playlistWiseTracks = await getTracksFromAllPlaylist(playlists, accessToken);
       res.json(playlistWiseTracks);
       process.exit(0);
     }
@@ -108,4 +105,5 @@ async function main() {
   });
   app.listen(PORT, console.log(`listting on ${PORT}`));
 }
+
 main();
