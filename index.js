@@ -1,11 +1,13 @@
 import express from 'express';
 import open from 'open';
 import dotenv from 'dotenv';
+import clr from 'colors'
+
 dotenv.config();
 
-import { PORT, client_id, redirect_uri } from './config.js';
-import { fetchUserTracks } from './spotifyFunctions.js';
-import { spotifytoyoutube } from './youtubeSearch.js';
+import { PORT, client_id, redirect_uri } from './config/config.js';
+import { fetchUserTracks } from './utils/spotifyFunctions.js';
+import { spotifytoyoutube } from './utils/youtubeSearch.js';
 
 async function main() {
   console.log('Click here to give the code access to fetch your details from spotify:');
@@ -21,7 +23,9 @@ async function main() {
     const code = req.query.code;
     try{
       const allTracks = await fetchUserTracks(code);
-      const result = await spotifytoyoutube(allTracks)
+      console.log(clr.yellow("Fetching the youtube links for each track..."));
+      const result = await spotifytoyoutube(allTracks);
+      console.log(clr.green("Fetching successfully."));
       res.json(result);
       process.exit(0);
     }

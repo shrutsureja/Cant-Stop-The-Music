@@ -1,4 +1,5 @@
-import {client_id, client_secret, redirect_uri} from './config.js';
+import {client_id, client_secret, redirect_uri} from '../config/config.js';
+import clr from 'colors'
 import axios from 'axios';
 
 async function getAccessToken(code){
@@ -42,6 +43,7 @@ async function getPlaylists(accessToken){
       break
     offset += 20;
   }
+  console.log(clr.yellow("Spotify") + clr.green(" playlists fetching Completed."));
   return {
     playlists: allPaylist,
     total : allPaylist.total
@@ -87,10 +89,15 @@ async function getTracksFromSinglePlaylist(list, accessToken) {
 }
 
 const fetchUserTracks = async (code) => {
-  const accessToken = await getAccessToken(code);
-  const playlists = await getPlaylists(accessToken);
-  const playlistWiseTracks = await getTracksFromAllPlaylist(playlists, accessToken);
-  return playlistWiseTracks;
+  try {
+    const accessToken = await getAccessToken(code);
+    const playlists = await getPlaylists(accessToken);
+    const playlistWiseTracks = await getTracksFromAllPlaylist(playlists, accessToken);
+    console.log(clr.green("Tracks from all playlists fetched."));
+    return playlistWiseTracks;
+  } catch (error) {
+    console.error(clr.red("Some error occured in fetching from spotify.\n") + "Error : " + error);
+  }
 }
 
 export {
